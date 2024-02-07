@@ -15,7 +15,12 @@ class Program
         var channel = connection.CreateModel();
 
 
-        channel.QueueDeclare("myQueue01",durable: true,exclusive: false,autoDelete: false,arguments: null);
+        channel.QueueDeclare(
+            queue:"myQueue01",
+            durable: true,
+            exclusive: false,
+            autoDelete: false,
+            arguments: null);
 
 
 
@@ -27,11 +32,15 @@ class Program
                     var body = eventArg.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
                     Console.WriteLine("Received Message " + message);
+                    channel.BasicAck(eventArg.DeliveryTag, true);
                 };
 
 
 
-        channel.BasicConsume(queue: "myQueue01", autoAck: true, consumer: consumer);
+        channel.BasicConsume(
+            queue: "myQueue01", 
+            autoAck: false, 
+            consumer: consumer);
         Console.ReadLine();
 
     }
