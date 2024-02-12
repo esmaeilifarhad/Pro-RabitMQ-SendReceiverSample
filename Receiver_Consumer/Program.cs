@@ -16,20 +16,25 @@ class Program
         //ایجاد کانال
         var channel = connection.CreateModel();
 
-        //ایجاد صف
-        
+
+        var headers = new Dictionary<string, object> {
+            {"subject","order" },
+             {"action","create" },
+            {"x-match","any" }
+        };
+
+
         channel.QueueDeclare(
-            queue:"myQueue01",
-            durable: true,
-            exclusive: false,
-            autoDelete: false,
-            arguments: null);
+            queue: "orderService"
+            , durable: false
+            ,exclusive: false
+            ,autoDelete: false);
 
-        channel.BasicQos(
-            prefetchSize: 0
-            , prefetchCount: 1
-            , global: false);
-
+        channel.QueueBind(
+            queue: "orderService"
+            , exchange: "orderHeader"
+            , routingKey: ""
+            ,arguments:headers);
 
         var consumer = new EventingBasicConsumer(channel);
         //دریافت پیام
@@ -37,20 +42,15 @@ class Program
                 {
                     var body = eventArg.Body.ToArray();
                     var message = Encoding.UTF8.GetString(body);
-
-                    Random random= new Random();
-                    int sleep = random.Next(0,2) * 1000;
-                    Console.WriteLine($"Sleep:{sleep} delivery tags{eventArg.DeliveryTag}");
-                    Thread.Sleep( sleep );
-                    Console.WriteLine("Received Message " + message);
-                    channel.BasicAck(eventArg.DeliveryTag, true);
+                    Console.WriteLine("eventArg :"+eventArg.DeliveryTag  +" Received Message " + message);
+                  
                 };
 
 
         //عکس العمل به فرستنده پیام
         channel.BasicConsume(
-            queue: "myQueue01", 
-            autoAck: false, 
+            queue: "orderService", 
+            autoAck: true, 
             consumer: consumer);
         Console.ReadLine();
 

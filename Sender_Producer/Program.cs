@@ -11,25 +11,34 @@ class Program
         var connection = factory.CreateConnection();
         var channel = connection.CreateModel();
 
-        channel.QueueDeclare(queue: "myQueue01", durable: true, exclusive: false, autoDelete: false, arguments: null);
 
-        channel.QueueDeclare("myQueue02", false, false, false, null);
+        channel.ExchangeDeclare(
+            exchange: "orderHeader"
+            , type: ExchangeType.Headers
+            , durable: false);
 
-        for (int i = 0; i < 100; i++)
-        {
-            string message = $"Send shopping cart information to place an order  Time :{DateTime.Now.Ticks}";
-            var body = Encoding.UTF8.GetBytes(message);
-            var properties=channel.CreateBasicProperties();
-            //برای اینکه بخواهیم پیام ها روی دیسک ذخیره شود و از بین نرود باید iBasicProperty را کانفیگ کنیم
-            properties.Persistent = true;
 
-            channel.BasicPublish( exchange: "",routingKey: "myQueue01",basicProperties:properties,body);
-        }
-     
-       
+        string message = $"Send shopping cart information to place an order  Time :{DateTime.Now.Ticks}";
+        var body = Encoding.UTF8.GetBytes(message);
+
+        var headers = new Dictionary<string, object> {
+            {"subject","order" },
+             {"action","create" }
+        };
+        var properties=channel.CreateBasicProperties();
+        properties.Headers=headers;
+
+        channel.BasicPublish(
+            exchange: "orderHeader"
+            , routingKey: ""
+            , basicProperties: properties
+            , body);
+
         channel.Close();
         connection.Close();
-
+        Console.ReadLine();
     }
 }
+
+
 
