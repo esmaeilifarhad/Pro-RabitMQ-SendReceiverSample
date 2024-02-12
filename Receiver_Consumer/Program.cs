@@ -25,7 +25,10 @@ class Program
             autoDelete: false,
             arguments: null);
 
-
+        channel.BasicQos(
+            prefetchSize: 0
+            , prefetchCount: 1
+            , global: false);
 
 
         var consumer = new EventingBasicConsumer(channel);
